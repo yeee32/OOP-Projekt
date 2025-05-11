@@ -145,7 +145,13 @@ class FragilePackage : public Package{
         }
         void PrintInfo() override {
             Package::PrintInfo();
-            cout << " fragile: " << (isItFragile ? "yes" : "no") << endl;
+            cout << "is fragile: ";
+            if(isItFragile){
+                cout << "true" << endl;
+            }
+            else{
+                cout << "false" << endl;
+            }
     }
 };
 
