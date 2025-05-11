@@ -56,6 +56,7 @@ void Person::PrintInfo(){
     cout << ", Surname: " << this->GetSurname();
     cout << ", Address: " << this->GetAddress();
 }
+
 class Packet{   
     private:
         Sender* sender;
@@ -169,6 +170,7 @@ class PostalOffice{
         float maxH;
         float maxL;
         float modif;
+        static float minPrice;
     public:
         PostalOffice(string name, float modif);
         float CalculatePrice(Packet* packet);
@@ -179,6 +181,8 @@ class PostalOffice{
         vector<float> GetMaxDimensons();
         void SetMaxWeight(float weight);
         float GetMaxWeight();
+        static float GetMinPrice();
+        static void SetMinPrice(float minPrice);
     };
 
 PostalOffice::PostalOffice(string name, float modif){
@@ -198,8 +202,19 @@ float PostalOffice::GetMaxWeight(){
     return this->maxWeight;
 }
 
+float PostalOffice::GetMinPrice(){
+    return PostalOffice::minPrice;
+}
+
+void PostalOffice::SetMinPrice(float minPrice){
+    PostalOffice::minPrice = minPrice;
+}
+
+// default
+float PostalOffice::minPrice = 20;
+
 float PostalOffice::CalculatePrice(Packet* packet){
-    const float minPrice = 20.0; 
+    
     float volume = packet->GetVolume();     
     float weight = packet->GetWeight();    
     float price = 0.0;
@@ -218,8 +233,8 @@ float PostalOffice::CalculatePrice(Packet* packet){
 
 
     price = price * this->modif;
-    if(price < minPrice){
-        return minPrice;
+    if(price < PostalOffice::minPrice){
+        return PostalOffice::minPrice;
     } 
     else{
         return price;
@@ -273,7 +288,7 @@ PackageBox::PackageBox(string address, int capacity, PostalOffice* postaloffice)
 }
 
 void PackageBox::InsertPackage(Packet* packet){
-    if(this->CanPacketFit(packet) && this->IsValidWeight(packet)){
+    if(this->CanPacketFit(packet) && this->IsValidWeight(packet) && availableBoxes > 0){
         this->availableBoxes--;
     }
 }
@@ -385,6 +400,8 @@ void Receiver::PrintInfo(){
 int main(){
     PostalOffice* postalOffice1 = new PostalOffice("Česká Pošta", 1.2);
     PostalOffice* postalOffice2 = new PostalOffice("BOX Pošta", 1.5);
+
+    PostalOffice::SetMinPrice(50.0);
 
     postalOffice1->SetMaxDimensions(70, 70, 70);
     postalOffice1->SetMaxWeight(15);
