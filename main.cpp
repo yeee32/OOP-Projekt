@@ -10,6 +10,7 @@ class Packet;
 class Package;
 class Letter;
 class PostalOffice;
+class FragilePackage;
 
 class Person{
     private:
@@ -132,6 +133,20 @@ class Letter : public Packet{
             cout << " length: " << this->length;
             cout << endl;
         }
+};
+
+class FragilePackage : public Package{
+    private:
+        bool isItFragile;
+    public:
+        FragilePackage(int id, float w, float h, float l, float weight, bool isFragile): Package(id, w, h, l, weight), isItFragile(isFragile) {}
+        bool CarefulTransport(){
+            return isItFragile;
+        }
+        void PrintInfo() override {
+            Package::PrintInfo();
+            cout << " fragile: " << (isItFragile ? "yes" : "no") << endl;
+    }
 };
 
 Letter::Letter(int id, int h, int l){
@@ -279,19 +294,19 @@ bool PackageBox::CanPacketFit(Packet* packet){
     vector<float> maxDims = this->postOffice->GetMaxDimensons();
 
     if(packetDims[0] > maxDims[0]){
-        cout << "Packet["<< packet->GetId() << "]: width is too large, ";
+        cout << "Packet["<< packet->GetId() << "]: width is too large" << endl;;
         return false;
     }
     else if(packetDims[1] > maxDims[1]){
-        cout << "Packet[" << packet->GetId() << "]: heigth is too large, ";
+        cout << "Packet[" << packet->GetId() << "]: heigth is too large" << endl;;
         return false;
     }
     else if(packetDims[2] > maxDims[2]){
-        cout << "Packet[" << packet->GetId() << "]: length is too large, ";
+        cout << "Packet[" << packet->GetId() << "]: length is too large" << endl;;
         return false;
     }
     else{
-        cout << "Packet[" << packet->GetId() << "]: packet can fit, " << endl;
+        cout << "Packet[" << packet->GetId() << "]: packet can fit" << endl;
         return true;
     }
 }
@@ -319,6 +334,11 @@ class Sender : public Person{
 void Sender::PrintInfo(){
     Person::PrintInfo();    
     cout << ", Sent packets: " << this->numSentPackets;
+    cout << ", Sent packets IDs listed: { ";
+    for(auto& pack : this->sentPackets){
+        cout << "[" << pack->GetId() << "] ";
+    }
+    cout << "}";
     cout << endl;
 }
 
@@ -346,6 +366,11 @@ void Receiver::GetPacket(Packet* packet, PackageBox* packageBox){
 void Receiver::PrintInfo(){
     Person::PrintInfo();
     cout << ", Received packets: " << this->numReceivedPackets;
+    cout << ", Received packets IDs listed: { ";
+    for(auto& pack : this->receivedPackets){
+        cout << "[" << pack->GetId() << "] ";
+    }
+    cout << "}";
     cout << endl;
 }
 
@@ -382,9 +407,17 @@ int main(){
     PackageBox* packageBox1 = new PackageBox("Na duze 14", 20, postalOffice1);
     packageBox1->PrintInfo();
 
+    sender1->Send(packet1, receiver1);
+    sender1->Send(packet2, receiver2);
+    sender3->Send(packet5, receiver2);
+    
+    cout << "-----------------------------------------" << endl;
+
     for(auto& pack : packets){
         packageBox1->InsertPackage(pack);
     }
+
+    cout << "-----------------------------------------" << endl;
 
     cout << "After inserting packages:" << endl;
     packageBox1->PrintInfo();
@@ -393,22 +426,21 @@ int main(){
 
     receiver1->GetPacket(packet1, packageBox1);
     receiver2->GetPacket(packet2, packageBox1);
+    receiver2->GetPacket(packet5, packageBox1);
+
     cout << "After receiver gets packages:" << endl;
     packageBox1->PrintInfo();
 
     cout << "-----------------------------------------" << endl;
 
-    sender1->Send(packet1, receiver1);
-    sender1->Send(packet2, receiver2);
-
-    cout << "Sender Info:" << endl;
+    cout << "Senders Info:" << endl;
     for(auto& sender: senders){
         sender->PrintInfo();
     }
 
     cout << "-----------------------------------------" << endl;
 
-    cout << "Receiver Info:" << endl;
+    cout << "Receivers Info:" << endl;
     for(auto& receiver: receivers){
         receiver->PrintInfo();
     }
@@ -426,10 +458,20 @@ int main(){
     }
     cout << "-----------------------------------------" << endl;
 
-    cout << "calculating prices at: " << postalOffice2->GetName() << " with discount"<< endl;
+    float discount = 0.25;
+
+    cout << "calculating prices at: " << postalOffice2->GetName() << " with " << discount * 100 << " % discount"<< endl;
     for(auto& pack : packets){
-        cout << "Packet[" << pack->GetId() << "] costs: " << postalOffice2->CalculatePrice(pack, 0.3) << " Kc" << endl;
+        cout << "Packet[" << pack->GetId() << "] costs: " << postalOffice2->CalculatePrice(pack, discount) << " Kc" << endl;
     }
+    cout << "-----------------------------------------" << endl;
+
+    cout << "Fragile packages info: " << endl;
+    Package* fragile1 = new FragilePackage(0, 7, 10, 30, 13, true);
+    Package* fragile2 = new FragilePackage(1, 30, 21, 14, 10, false);
+    fragile1->PrintInfo();
+    fragile2->PrintInfo();
+
     cout << "-----------------------------------------" << endl;
 
     cout << "Packets info" << endl;
